@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <script src="http://code.jquery.com/jquery-1.4.1.min.js"></script>
+    <script type="text/javascript">
+
+        var panorama;//全景图
+
+        $(document).ready(function () {
+            panorama = $("#panorama");
+            //注册全景图click事件
+            panorama.click(function (event) {
+                var evt = event || window.event;
+                var posX = evt.pageX;
+                var posY = evt.pageY;
+                if (posX || posY) {
+                    writeConfig(posX, posY);
+                    return;
+                }
+                posX = evt.clientX + panorama.scrollLeft - panorama.clientLeft;
+                posY = evt.clientY + panorama.scrollTop - panorama.clientTop;
+                writeConfig(posX, posY);
+            });
+        });
+
+        function writeConfig(posX, posY) {
+            alert("拾取像素坐标：x=" + posX + ", y=" + posY);
+        }
+    </script> 
+</head>
+<body style="margin:0px;">
+    <div id="panorama">
+        <img src="Images/House.jpg" />
+    </div>
+</body>
+</html>
