@@ -11,6 +11,7 @@ from aip import AipOcr
 import io
 import base64
 from colorama import init,Fore
+import configparser
 
 # 二值化算法
 def binarizing(img, threshold):
@@ -160,61 +161,6 @@ def ocr_img_tess(image, config):
     return question, choices
 
 
-def ocr_pbc_question(image, config):
-    '''
-    pbc学习微平台，获取对战题目
-    :param image:
-    :param config:
-    :return:
-    '''
-    question_region = config.get("region", "question_region").replace(' ', '').split(',')
-    question_region = list(map(int, question_region))
-
-    question_im = image.crop(
-        (question_region[0], question_region[1], question_region[2], question_region[3]))
-
-    # 边缘增强滤波,不一定适用
-    # question_im = question_im.filter(ImageFilter.EDGE_ENHANCE)
-    # choices_im = choices_im.filter(ImageFilter.EDGE_ENHANCE)
-
-    # 转化为灰度图
-    question_im = question_im.convert('L')
-
-    # 把图片变成二值图像
-    question_im = binarizing(question_im, 190)
-
-    # question_im = question_im.convert('1')
-    # choices_im = choices_im.convert('1')
-    # question_im.show()
-    # choices_im.show()
-    # img=depoint(choices_im)
-    # img.show()
-
-    # win环境
-    # tesseract 路径
-
-    # pytesseract.pytesseract.tesseract_cmd = config.get("tesseract", "tesseract_cmd")
-
-    # 语言包目录和参数
-    # tessdata_dir_config = config.get("tesseract", "tessdata_dir_config")
-
-    # lang 指定中文简体
-    question = pytesseract.image_to_string(question_im, lang='chi_sim')
-    question = question.replace("\n", "")[2:]
-    # 处理将"一"识别为"_"的问题
-    question = question.replace("_", "一")
-
-    # 兼容截图设置不对，意外出现问题为两行或三行
-    # if (choices[0].endswith('?')):
-    #     question += choices[0]
-    #     choices.pop(0)
-    # if (choices[1].endswith('?')):
-    #     question += choices[0]
-    #     question += choices[1]
-    #     choices.pop(0)
-    #     choices.pop(0)
-
-    return question
 
 
 def ocr_img_baidu(image, config):
@@ -268,15 +214,78 @@ def ocr_img_baidu(image, config):
     return question, choices
 
 
-if __name__ == '__main__':
-    image = Image.open("../screenshot.png")
-    # question, choices = ocr_img(image)
-    # print("Tess 识别结果:")
-    # print(question)
-    # print(choices)
-    # print()
+def ocr_pbc_question(image, config):
+    '''
+    pbc学习微平台，获取对战题目
+    :param image:
+    :param config:
+    :return:
+    '''
+    question_region = config.get("region", "question_region").replace(' ', '').split(',')
+    question_region = list(map(int, question_region))
 
-    question, choices = ocr_img_baidu(image)
-    print("baidu 识别结果:")
+    question_im = image.crop(
+        (question_region[0], question_region[1], question_region[2], question_region[3]))
+
+    # 边缘增强滤波,不一定适用
+    # question_im = question_im.filter(ImageFilter.EDGE_ENHANCE)
+    # choices_im = choices_im.filter(ImageFilter.EDGE_ENHANCE)
+
+    # 转化为灰度图
+    question_im = question_im.convert('L')
+
+    # 把图片变成二值图像
+    question_im = binarizing(question_im, 190)
+
+    # question_im = question_im.convert('1')
+    # choices_im = choices_im.convert('1')
+    # question_im.show()
+    # choices_im.show()
+    # img=depoint(choices_im)
+    # img.show()
+
+    # win环境
+    # tesseract 路径
+
+    # pytesseract.pytesseract.tesseract_cmd = config.get("tesseract", "tesseract_cmd")
+
+    # 语言包目录和参数
+    # tessdata_dir_config = config.get("tesseract", "tessdata_dir_config")
+
+    # lang 指定中文简体
+    question = pytesseract.image_to_string(question_im, lang='chi_sim')
+    question = question.replace("\n", "")
+    # # 处理将"一"识别为"_"的问题
+    # question = question.replace("_", "一")
+
+    # 兼容截图设置不对，意外出现问题为两行或三行
+    # if (choices[0].endswith('?')):
+    #     question += choices[0]
+    #     choices.pop(0)
+    # if (choices[1].endswith('?')):
+    #     question += choices[0]
+    #     question += choices[1]
+    #     choices.pop(0)
+    #     choices.pop(0)
+
+    return question.replace(' ', '')
+
+
+if __name__ == '__main__':
+    # 读取配置文件
+    config = configparser.ConfigParser()
+    config.read('../config/configure.conf', encoding='utf-8')
+
+    img = Image.open("/home/kowen/Pictures/pbc-xuexi/Screenshot_20190803_083249_com.tencent.mm.jpg")
+
+    # 文字识别,可选 Tesseract 和 Baidu ,请在 config/configure.conf 中进行相应配置
+
+    # ocr_img: 需要分别截取题目和选项区域，使用 Tesseract
+    # ocr_img_tess： 题目和选项一起截，使用 Tesseract
+    # ocr_img_baidu： 题目和选项一起截，使用 baidu ocr，需配置 key
+
+    # question, choices = ocr.ocr_img(img, config)
+    question = ocr_pbc_question(img, config)
+    # question, choices = ocr.ocr_img_baidu(img, config)
+
     print(question)
-    print(choices)
